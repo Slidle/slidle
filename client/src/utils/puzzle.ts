@@ -1,4 +1,4 @@
-import type { Difficulty, ScoreBreakdown, TileState } from '../types';
+import type { Difficulty, TileState } from '../types';
 
 export const GRID_SIZE = 4;
 export const TOTAL_TILES = GRID_SIZE * GRID_SIZE;
