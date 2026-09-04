@@ -30,10 +30,12 @@ Este es un monorepo: un solo repositorio de Git y cada entregable aislado en su 
 
 | Directorio | Entregable | Responsable principal | Detalle |
 |---|---|---|---|
-| `client/` | Frontend: SPA (React, TypeScript, Tailwind CSS, Vite) | Frontend | Tablero de juego, modales de fin de juego y auth |
-| `server/` | Backend: API REST, persistencia y auth (Spring Boot / a confirmar) | Backend | Validación de puzzles, scores y usuarios |
-| `docs/` | Contratos de API, ADRs y especificaciones | Equipo | `docs/API.md`, acuerdos de endpoints y diseño |
-
+| `frontend/` | Aplicación web en React + Tailwind | Frontend |
+| `backend/` | API REST y persistencia | Backend |
+| `design/` | Flujos de usuario, diseño de pantallas y assets de Figma | UX/UI Designer |
+| `testing/` | Planes de prueba, matrices de casos y reportes de QA | QA Tester |
+| `database/` | Esquema y scripts de base de datos | Backend |
+| `docs/` | Minutas, acuerdos técnicos y contratos de API | PM / Equipo |
 ---
 
 ## Stack técnico del arquetipo
