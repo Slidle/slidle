@@ -15,6 +15,7 @@ import { OnboardingModal } from './components/OnboardingModal';
 import type { TileState, GameStatus, PuzzleImage } from './types';
 import { createInitialBoard, getSlidePath, isPuzzleSolved, shuffleBoard, getGridSize, getBlankId, calculateCompletionBonus, POINTS_PER_TILE } from './utils/puzzle';
 
+
 const DEFAULT_IMAGE: PuzzleImage = {
   name: 'Retrato de gatito',
   url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4fM4fYVmrffNBcw1-R-z7wOFeoM5TuULOBOzirHzJP-xdR5fygFvjH-c&s=10',

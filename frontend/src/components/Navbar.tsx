@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import logoSvg from '../assets/Logo.svg';
 import type { GameStatus } from '../types';
 import type { BoardMode } from './DifficultySelector';
+import { getFormattedToday } from '../utils/date'
 
 interface NavbarProps {
   status?: GameStatus;
@@ -20,6 +21,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   userInitials = 'MC',
 }) => {
   const isGameActive = status === 'playing' || status === 'paused';
+
+  const todayFormatted = getFormattedToday();
 
   return (
     <header className="w-full bg-blanco border border-ink rounded-xl px-3 sm:px-6 py-2 sm:py-3 shadow-card flex items-center justify-between gap-2 sm:gap-4 transition-all">
@@ -87,11 +90,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green-main shrink-0" />
               <span>Desafío diario</span>
               <span className="text-ink/30 font-normal">|</span>
-              <span className="text-ink/80 font-semibold hidden sm:inline">
-                Sábado, 5 de septiembre
-              </span>
-              <span className="text-ink/80 font-semibold sm:hidden">
-                Sáb, 5 de sep.
+              <span className="text-ink/80 font-semibold">
+                {todayFormatted}
               </span>
             </div>
           </>
