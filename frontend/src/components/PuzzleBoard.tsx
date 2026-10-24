@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { TileState, GameStatus, PuzzleImage } from '../types';
-import { getRowCol, getSlidePath, getGridSize, getBlankId } from '../utils/puzzle';
+import { getRowCol, getSlidePath } from '../utils/puzzle';
 import { Play } from 'lucide-react';
 import type { BoardMode } from './DifficultySelector';
 
