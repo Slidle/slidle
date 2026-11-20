@@ -101,15 +101,13 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         {/* Fichas deslizantes */}
         <div className="absolute inset-2.5 pointer-events-none">
           {tiles.map((tile) => {
-            if (tile.isBlank) return null;
+            if (tile.isBlank && status !== 'idle' && status !== 'won') return null;
 
-            // Pasamos gridSize para que calcule fila y columna en base a 3 (no a 4)
             const { row: targetRow, col: targetCol } = getRowCol(tile.currentPos, gridSize);
             const { row: origRow, col: origCol } = getRowCol(tile.originalPos, gridSize);
             const isMovable = getSlidePath(tile.currentPos, blankPos, gridSize) !== null;
             const isCorrectPosition = tile.currentPos === tile.originalPos && status === 'playing';
 
-            // Recorte dinámico de imagen
             const bgPosX = (origCol / (gridSize - 1)) * 100;
             const bgPosY = (origRow / (gridSize - 1)) * 100;
             const tileNumber = tile.originalPos + 1;

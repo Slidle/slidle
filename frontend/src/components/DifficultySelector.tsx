@@ -14,19 +14,19 @@ export const DifficultySelector: React.FC<DifficultySelectorProps> = ({
   disabled = false,
 }) => {
   return (
-    <section className="w-full bg-blanco border border-ink rounded-modal p-4 sm:p-5 shadow-card">
-      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text block mb-3">
+    <section className="w-full bg-blanco border border-ink rounded-modal p-4 shadow-card">
+      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-text block mb-2">
         Elegí tu desafío
       </span>
 
       {/* Siempre 2 columnas (misma fila), con gap ajustado */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {/* Opción 3x3 */}
         <button
           type="button"
           disabled={disabled}
           onClick={() => onSelectMode('3x3')}
-          className={`flex items-center justify-center sm:justify-start gap-2 sm:gap-3 p-2.5 sm:p-3.5 rounded-card border border-ink transition cursor-pointer text-left ${
+          className={`flex items-center justify-center sm:justify-start gap-2 sm:gap-3 p-2.5 rounded-card border border-ink transition cursor-pointer text-left ${
             selectedMode === '3x3'
               ? 'bg-blue-main text-white shadow-card'
               : 'bg-blanco text-ink hover:bg-cream'
@@ -44,7 +44,7 @@ export const DifficultySelector: React.FC<DifficultySelectorProps> = ({
           </div>
 
           <div className="flex flex-wrap items-baseline gap-x-1.5 leading-tight">
-            <span className="font-bold text-xs sm:text-base whitespace-nowrap">
+            <span className="font-bold text-xs sm:text-sm whitespace-nowrap">
               3x3 Principiante
             </span>
             <span
@@ -62,7 +62,7 @@ export const DifficultySelector: React.FC<DifficultySelectorProps> = ({
           type="button"
           disabled={disabled}
           onClick={() => onSelectMode('4x4')}
-          className={`flex items-center justify-center sm:justify-start gap-2 sm:gap-3 p-2.5 sm:p-3.5 rounded-card border border-ink transition cursor-pointer text-left ${
+          className={`flex items-center justify-center sm:justify-start gap-2 sm:gap-3 p-2.5 rounded-card border border-ink transition cursor-pointer text-left ${
             selectedMode === '4x4'
               ? 'bg-blue-main text-white shadow-card'
               : 'bg-blanco text-ink hover:bg-cream'
@@ -80,7 +80,7 @@ export const DifficultySelector: React.FC<DifficultySelectorProps> = ({
           </div>
 
           <div className="flex flex-wrap items-baseline gap-x-1.5 leading-tight">
-            <span className="font-bold text-xs sm:text-base whitespace-nowrap">
+            <span className="font-bold text-xs sm:text-sm whitespace-nowrap">
               4x4 Desafío
             </span>
             <span

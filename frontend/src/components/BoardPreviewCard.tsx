@@ -15,7 +15,7 @@ export const BoardPreviewCard: React.FC<BoardPreviewCardProps> = ({
   return (
     <article className="w-full h-full bg-blanco border border-ink rounded-modal p-4 sm:p-6 shadow-card flex flex-col justify-between">
       {/* Encabezado interno con título y badge de estado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2 sm:gap-0">
         <div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-ink leading-tight">
             Vista previa del tablero
@@ -35,12 +35,12 @@ export const BoardPreviewCard: React.FC<BoardPreviewCardProps> = ({
       </div>
 
       {/* Contenedor central del PuzzleBoard */}
-      <div className="flex items-center justify-center my-auto py-2">
+      <div className="flex items-center justify-center my-auto">
         {children}
       </div>
 
       {/* Pie de la tarjeta: aclaración y botón de inicio */}
-      <div className="mt-5 pt-4 border-t border-ink/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <div className="mt-5 pt-4 border-t border-ink/10 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 text-center sm:text-left">
         <p className="text-xs text-ink/60 font-semibold">
           Al comenzar, las piezas se mezclan y arranca el cronómetro.
         </p>
@@ -49,7 +49,7 @@ export const BoardPreviewCard: React.FC<BoardPreviewCardProps> = ({
           <button
             type="button"
             onClick={onStart}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 bg-blue-main hover:bg-blue-main/90 text-white font-bold text-base sm:text-base border border-black rounded-card shadow-[0_1px_0px_#000000] transition active:translate-y-0.5 cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 bg-blue-main hover:bg-blue-main/90 text-white font-bold sm:text-sm border border-black rounded-lg shadow-[0_1px_0px_#000000] transition active:translate-y-0.5 cursor-pointer"
           >
             <span>Comenzar desafío</span>
             <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-blue-main">

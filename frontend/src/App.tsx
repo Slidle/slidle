@@ -12,13 +12,16 @@ import { ActiveGameControls } from './components/ActiveGameControls';
 import { ReferenceModal } from './components/ReferenceModal';
 import { ShuffleModal } from './components/ShuffleModal';
 import { OnboardingModal } from './components/OnboardingModal';
+import { GuestWarningModal } from './components/GuestWarningModal';
+import { VictoryModal } from './components/VictoryModal';
 import type { TileState, GameStatus, PuzzleImage } from './types';
 import { createInitialBoard, getSlidePath, isPuzzleSolved, shuffleBoard, getGridSize, getBlankId, calculateCompletionBonus, POINTS_PER_TILE } from './utils/puzzle';
+import daily1 from './assets/Daily1.jpg';
 
 
 const DEFAULT_IMAGE: PuzzleImage = {
-  name: 'Retrato de gatito',
-  url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4fM4fYVmrffNBcw1-R-z7wOFeoM5TuULOBOzirHzJP-xdR5fygFvjH-c&s=10',
+  name: 'Tigre', 
+  url: daily1,
 };
 
 export default function App() {
@@ -34,6 +37,8 @@ export default function App() {
   const [showStats, setShowStats] = useState(true);
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
   const [isShuffleOpen, setIsShuffleOpen] = useState(false);
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+  const [hasAcceptedGuest, setHasAcceptedGuest] = useState(false);
 
   const timerRef = useRef<number | null>(null);
 
@@ -50,14 +55,13 @@ export default function App() {
     };
   }, [status]);
 
-  // Iniciar partida desde el botón "Comenzar desafío"
   const handleStartChallenge = () => {
     const initialShuffled = shuffleBoard('medium', boardMode);
     setTiles(initialShuffled);
     setTimeSeconds(0);
     setMoves(0);
     setScore(0);
-    setScoredTileIds([]); // Resetea las piezas puntuadas
+    setScoredTileIds([]); 
     setStatus('playing');
   };
 
@@ -141,9 +145,53 @@ export default function App() {
     }
   };
 
+  const handleStartChallengeClick = () => {
+    // Si todavía no aceptó el aviso de invitado, abrimos el modal y frenamos el inicio
+    if (!hasAcceptedGuest) {
+      setIsGuestModalOpen(true);
+      return;
+    }
+
+    // Si ya aceptó antes, arrancamos la partida directo (acá llamás a tu función actual de iniciar partida)
+    handleStartChallenge(); 
+  };
+
+  const handleConfirmGuest = () => {
+    setHasAcceptedGuest(true);
+    setIsGuestModalOpen(false);
+    handleStartChallenge(); 
+  };
+
+  const handlePlayAgain = () => {
+    handleStartChallenge(); 
+  };
+
+  const handleNextChallenge = () => {
+    const nextMode = boardMode === '3x3' ? '4x4' : '3x3';
+    setBoardMode(nextMode);
+    const initialShuffled = shuffleBoard('medium', nextMode);
+    setTiles(initialShuffled);
+    setTimeSeconds(0);
+    setMoves(0);
+    setScore(0);
+    setScoredTileIds([]);
+    setStatus('playing');
+  };
+
+  const handleSaveAsGuest = () => {
+    // Por ahora, hasta que el back tenga el endpoint listo:
+    console.log('Guardar partida como invitado:', {
+      boardMode,
+      timeSeconds,
+      moves,
+      score,
+    });
+    alert('¡Puntaje guardado como invitado!');
+  };
+
   return (
-    <div className="min-h-screen bg-cream text-ink font-sans flex flex-col items-center py-4 sm:py-6 px-3 sm:px-6">
-      <div className="w-full max-w-310 flex flex-col gap-5 sm:gap-6 pb-16 sm:pb-0">
+    <div className="min-h-screen bg-cream text-ink font-sans flex flex-col items-center py-3 px-3 sm:px-6">
+      <div className="w-full max-w-300 flex flex-col gap-4">
         
         {/* Navbar adaptativa según status */}
         <Navbar
@@ -163,11 +211,11 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-4"
             >
               {/* Encabezado */}
               <header className="flex flex-col gap-0.5 text-left -my-1">
-                <h1 className="text-2xl sm:text-[34px] font-extrabold tracking-tight leading-tight text-ink m-0">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight text-ink m-0">
                   ¿Listo para tu desafío de hoy?
                 </h1>
                 <p className="text-sm sm:text-base font-normal text-text m-0">
@@ -189,20 +237,20 @@ export default function App() {
               />
 
               {/* Grid: Vista previa y estadísticas */}
-              <main className="grid grid-cols-1 lg:grid-cols-[1fr_335px] gap-6 items-stretch">
+              <main className="grid grid-cols-1 lg:grid-cols-[1fr_355px] gap-3 items-stretch">
                 <BoardPreviewCard
                   isStarted={false}
-                  onStart={handleStartChallenge}
+                  onStart={handleStartChallengeClick}
                 >
                   <PuzzleBoard
                     tiles={tiles}
-                    mode={boardMode} // <--- AGREGÁ ESTA LÍNEA ACÁ
+                    mode={boardMode} 
                     currentImage={DEFAULT_IMAGE}
                     showNumbers={true}
                     status={status}
                     onTileClick={handleTileClick}
                     onResume={() => setStatus('playing')}
-                    className="max-w-120"
+                    className="max-w-110"
                   />
                 </BoardPreviewCard>
 
@@ -274,6 +322,27 @@ export default function App() {
           onClose={handleCloseOnboarding}
         />
 
+        <GuestWarningModal
+          isOpen={isGuestModalOpen}
+          onContinueAsGuest={handleConfirmGuest} 
+          onLoginWithGoogle={() => console.log('Login próximamente')}
+          onClose={() => setIsGuestModalOpen(false)}
+        />
+
+        <VictoryModal
+          isOpen={status === 'won'}
+          boardMode={boardMode}
+          score={score}
+          timeSeconds={timeSeconds}
+          moves={moves}
+          streakDays={1} // cambiar cuando tengamos el estado
+          dailyGoalPoints={score} // cambiar cuando tengamos el estado
+          targetDailyGoal={2000}
+          onSaveAsGuest={handleSaveAsGuest}
+          onPlayAgain={handlePlayAgain}
+          onNextChallenge={handleNextChallenge}
+          onViewLeaderboard={() => console.log('Ver clasificación próximamente')}
+        />
       </div>
     </div>
   );

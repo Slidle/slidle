@@ -158,8 +158,8 @@ export function formatTime(seconds: number): string {
 }
 
 export const POINTS_PER_TILE: Record<BoardMode, number> = {
-  '3x3': 100, 
-  '4x4': 150, 
+  '3x3': 50, 
+  '4x4': 100, 
 };
 
 export function calculateCompletionBonus(
@@ -170,10 +170,10 @@ export function calculateCompletionBonus(
   const is3x3 = mode === '3x3';
 
   // Base de bonus por completar
-  const baseBonus = is3x3 ? 1200 : 2800;
+  const baseBonus = is3x3 ? 300 : 800;
   const timePenalty = is3x3 ? 2 : 3;
   const movePenalty = is3x3 ? 4 : 6;
-  const minBonus = is3x3 ? 100 : 250;
+  const minBonus = is3x3 ? 50 : 120;
 
   const totalDeductions = (seconds * timePenalty) + (moves * movePenalty);
   return Math.max(minBonus, baseBonus - totalDeductions);

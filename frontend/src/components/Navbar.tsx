@@ -17,15 +17,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   status = 'idle',
   boardMode = '4x4',
   userLevel = null,
-  userName = 'María C.',
-  userInitials = 'MC',
+  userName = 'Invitado',
+  userInitials = 'I',
 }) => {
   const isGameActive = status === 'playing' || status === 'paused';
 
   const todayFormatted = getFormattedToday();
 
   return (
-    <header className="w-full bg-blanco border border-ink rounded-xl px-3 sm:px-6 py-2 sm:py-3 shadow-card flex items-center justify-between gap-2 sm:gap-4 transition-all">
+    <header className="w-full bg-blanco border border-ink rounded-xl px-3 sm:px-6 py-2 sm:py-2.5 shadow-card flex items-center justify-between gap-2 sm:gap-3 transition-all">
       {/* 1. Logo */}
       <div className="flex items-center gap-2 shrink-0">
         <a

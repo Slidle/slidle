@@ -27,7 +27,7 @@ const STEPS = [
   {
     title: '¿Cómo se juega?',
     description:
-      'Movés las piezas haciendo clic, tocando la pantalla o con las flechas del teclado. Podés consultar la foto de referencia en cualquier momento, y cada pieza bien ubicada se resalta en verde con un check.',
+      'Movés las piezas haciendo clic o tocando la pantalla. Podés consultar la foto de referencia en cualquier momento, y cada pieza bien ubicada se resalta en verde con un check.',
     buttonText: 'Siguiente',
     renderIcon: () => (
       <div className="w-24 h-24 rounded-xl bg-blue-main border-2 border-black p-3 flex flex-col justify-between shadow-xs">
