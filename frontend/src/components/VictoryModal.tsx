@@ -1,9 +1,10 @@
 import React from 'react';
-import { Trophy, Star, Flame, Clock, RefreshCw, RotateCcw, ArrowRight, Bookmark } from 'lucide-react';
+import { Trophy, Star, Flame, Clock, RefreshCw, RotateCcw, ArrowRight, Bookmark, X } from 'lucide-react';
 import logoSvg from '../assets/Logo.svg';
 
 interface VictoryModalProps {
   isOpen: boolean;
+  onClose: () => void;
   boardMode: '3x3' | '4x4';
   score: number;
   timeSeconds: number;
@@ -19,6 +20,7 @@ interface VictoryModalProps {
 
 export const VictoryModal: React.FC<VictoryModalProps> = ({
   isOpen,
+  onClose,
   boardMode,
   score,
   timeSeconds,
@@ -44,19 +46,34 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   const progressPercentage = Math.min(100, Math.round((dailyGoalPoints / targetDailyGoal) * 100));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="w-full max-w-md rounded-card bg-white shadow-2xl overflow-hidden my-auto">
-        
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md rounded-card bg-white shadow-2xl overflow-hidden my-auto"
+      >
+        {/* Botón cerrar (X) */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar modal"
+          className="absolute top-3.5 right-3.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-ink/20 bg-white/80 text-ink/70 hover:bg-white hover:text-ink transition cursor-pointer"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
         {/* ZONA SUPERIOR */}
         <div className="bg-cream px-6 pt-6 pb-5 text-center border-b border-ink/15">
           {/* Logo Slidle */}
           <div className="flex items-center justify-center gap-1.5 mb-4">
             <div className="flex items-center gap-2">
-                <img
-                    src={logoSvg}
-                    alt="Logo Slidle"
-                    className="h-6 w-auto object-contain"
-                />
+              <img
+                src={logoSvg}
+                alt="Logo Slidle"
+                className="h-6 w-auto object-contain"
+              />
             </div>
           </div>
 

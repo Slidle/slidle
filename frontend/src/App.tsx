@@ -39,35 +39,52 @@ export default function App() {
   const [isShuffleOpen, setIsShuffleOpen] = useState(false);
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [hasAcceptedGuest, setHasAcceptedGuest] = useState(false);
+  const [hasStartedMoving, setHasStartedMoving] = useState(false);
+  const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
 
   const timerRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const accumulatedTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    if (status === 'playing') {
+    if (status === 'playing' && hasStartedMoving) {
+      startTimeRef.current = Date.now();
+
       timerRef.current = window.setInterval(() => {
-        setTimeSeconds((prev) => prev + 1);
-      }, 1000);
+        if (startTimeRef.current !== null) {
+          const elapsedMs = accumulatedTimeRef.current + (Date.now() - startTimeRef.current);
+          setTimeSeconds(Math.floor(elapsedMs / 1000));
+        }
+      }, 250);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (startTimeRef.current !== null && hasStartedMoving && status === 'paused') {
+        accumulatedTimeRef.current += Date.now() - startTimeRef.current;
+      }
+      startTimeRef.current = null;
     }
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [status]);
+  }, [status, hasStartedMoving]);
 
   const handleStartChallenge = () => {
     const initialShuffled = shuffleBoard('medium', boardMode);
     setTiles(initialShuffled);
     setTimeSeconds(0);
+    accumulatedTimeRef.current = 0;
+    startTimeRef.current = null;
+    setHasStartedMoving(false);
     setMoves(0);
     setScore(0);
     setScoredTileIds([]); 
+    setIsVictoryModalOpen(false);
     setStatus('playing');
   };
 
   const handleTileClick = useCallback(
     (clickedPos: number) => {
-      // Si la partida no está en curso (por ejemplo, sigue en 'idle' o está 'paused'), bloquea el clic
       if (status !== 'playing') return;
 
       const gridSize = getGridSize(boardMode);
@@ -79,8 +96,11 @@ export default function App() {
       const blankPos = blankTile.currentPos;
       const path = getSlidePath(clickedPos, blankPos, gridSize);
       if (!path || path.length === 0) return;
+      
+      if (!hasStartedMoving) {
+        setHasStartedMoving(true);
+      }
 
-      // Incrementa movimientos
       setMoves((prev) => prev + 1);
 
       setTiles((prev) => {
@@ -98,7 +118,6 @@ export default function App() {
           }
         }
 
-        // Identificar fichas que están bien ubicadas y que NO habían sumado antes
         const pointsPerTile = POINTS_PER_TILE[boardMode];
         const newScoredIds: number[] = [];
 
@@ -115,9 +134,9 @@ export default function App() {
           setScore((prevScore) => prevScore + newScoredIds.length * pointsPerTile);
         }
 
-        // Si se completó el tablero, sumamos el bonus final
         if (isPuzzleSolved(nextTiles)) {
           setStatus('won');
+          setIsVictoryModalOpen(true);
           const finalBonus = calculateCompletionBonus(boardMode, timeSeconds, moves + 1);
           setScore((prevScore) => prevScore + (newScoredIds.length * pointsPerTile) + finalBonus);
         }
@@ -125,7 +144,7 @@ export default function App() {
         return nextTiles;
       });
     },
-    [tiles, status, boardMode, moves, scoredTileIds, timeSeconds]
+    [tiles, status, boardMode, moves, scoredTileIds, timeSeconds, hasStartedMoving]
   );
 
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
@@ -152,7 +171,6 @@ export default function App() {
       return;
     }
 
-    // Si ya aceptó antes, arrancamos la partida directo (acá llamás a tu función actual de iniciar partida)
     handleStartChallenge(); 
   };
 
@@ -172,14 +190,18 @@ export default function App() {
     const initialShuffled = shuffleBoard('medium', nextMode);
     setTiles(initialShuffled);
     setTimeSeconds(0);
+    accumulatedTimeRef.current = 0;
+    startTimeRef.current = null;
+    setHasStartedMoving(false);
     setMoves(0);
     setScore(0);
     setScoredTileIds([]);
+    setIsVictoryModalOpen(false);
     setStatus('playing');
   };
 
   const handleSaveAsGuest = () => {
-    // Por ahora, hasta que el back tenga el endpoint listo:
+    // Por ahora, hasta que el back tenga el endpoint listo
     console.log('Guardar partida como invitado:', {
       boardMode,
       timeSeconds,
@@ -230,6 +252,9 @@ export default function App() {
                   setBoardMode(mode);
                   setTiles(createInitialBoard(mode));
                   setTimeSeconds(0);
+                  accumulatedTimeRef.current = 0; 
+                  startTimeRef.current = null;
+                  setHasStartedMoving(false);
                   setMoves(0);
                   setStatus('idle');
                 }}
@@ -330,13 +355,14 @@ export default function App() {
         />
 
         <VictoryModal
-          isOpen={status === 'won'}
+          isOpen={isVictoryModalOpen}
+          onClose={() => setIsVictoryModalOpen(false)}
           boardMode={boardMode}
           score={score}
           timeSeconds={timeSeconds}
           moves={moves}
-          streakDays={1} // cambiar cuando tengamos el estado
-          dailyGoalPoints={score} // cambiar cuando tengamos el estado
+          streakDays={1}
+          dailyGoalPoints={score}
           targetDailyGoal={2000}
           onSaveAsGuest={handleSaveAsGuest}
           onPlayAgain={handlePlayAgain}
