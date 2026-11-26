@@ -6,12 +6,12 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenHowToPlay }) => {
   return (
-    <footer className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text font-medium pt-4 pb-2 border-t border-ink/10">
+    <footer className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text font-medium pt-4 pb-20 sm:pb-2 border-t border-ink/10">
       <p className="text-center sm:text-left">
         © 2026 Slidle puzzle · Fotografías de animales
       </p>
 
-      <ul className="flex items-center gap-4 text-blue-main font-semibold flex-wrap justify-center">
+      <ul className="flex items-center gap-4 font-semibold flex-wrap justify-center">
         <li>
           <button
             type="button"
@@ -22,19 +22,37 @@ export const Footer: React.FC<FooterProps> = ({ onOpenHowToPlay }) => {
           </button>
         </li>
         <li>
-          <a href="#" className="hover:underline">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Próximamente"
+            className="bg-transparent border-0 p-0 text-text/60 font-semibold text-xs font-sans cursor-not-allowed select-none"
+          >
             Privacidad
-          </a>
+          </button>
         </li>
         <li>
-          <a href="#" className="hover:underline">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Próximamente"
+            className="bg-transparent border-0 p-0 text-text/60 font-semibold text-xs font-sans cursor-not-allowed select-none"
+          >
             Términos
-          </a>
+          </button>
         </li>
         <li>
-          <a href="#" className="hover:underline">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Próximamente"
+            className="bg-transparent border-0 p-0 text-text/60 font-semibold text-xs font-sans cursor-not-allowed select-none"
+          >
             Contacto
-          </a>
+          </button>
         </li>
       </ul>
     </footer>

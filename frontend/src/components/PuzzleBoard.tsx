@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { TileState, GameStatus, PuzzleImage } from '../types';
 import { getRowCol, getSlidePath } from '../utils/puzzle';
@@ -22,7 +22,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   currentImage,
   showNumbers,
   status,
-  mode = '4x4', 
+  mode = '4x4',
   onTileClick,
   onKeyDownMove,
   onResume,
@@ -32,10 +32,10 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const gridSize = mode === '3x3' ? 3 : 4;
-  const totalSlots = gridSize * gridSize; 
-  const blankId = totalSlots - 1; 
-  const tileDimensionPercent = 100 / gridSize; 
-  const bgScalePercent = gridSize * 100; 
+  const totalSlots = gridSize * gridSize;
+  const blankId = totalSlots - 1;
+  const tileDimensionPercent = 100 / gridSize;
+  const bgScalePercent = gridSize * 100;
 
   const blankTile = tiles.find((t) => t.isBlank || t.id === blankId);
   const blankPos = blankTile ? blankTile.currentPos : totalSlots - 1;
@@ -67,6 +67,15 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
 
   const isNumericOnly = !currentImage.url;
 
+  useEffect(() => {
+    if (status === 'playing' && boardRef.current) {
+      const firstMovableButton = boardRef.current.querySelector<HTMLButtonElement>(
+        'button:not([disabled])'
+      );
+      firstMovableButton?.focus({ preventScroll: true });
+    }
+  }, [status]);
+
   return (
     <div className={`w-full aspect-square flex flex-col items-center justify-center select-none transition-all duration-300 ${className}`}>
       <div
@@ -75,7 +84,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className="w-full h-full aspect-square relative bg-white p-2.5 rounded-[24px] border-2 border-black shadow-card overflow-hidden"
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: status === 'playing' ? 'manipulation' : 'auto' }}
       >
         {/* Grilla dinámica según modo */}
         <div
@@ -106,6 +115,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             const { row: targetRow, col: targetCol } = getRowCol(tile.currentPos, gridSize);
             const { row: origRow, col: origCol } = getRowCol(tile.originalPos, gridSize);
             const isMovable = getSlidePath(tile.currentPos, blankPos, gridSize) !== null;
+            const canInteract = status === 'playing' && isMovable;
             const isCorrectPosition = tile.currentPos === tile.originalPos && status === 'playing';
 
             const bgPosX = (origCol / (gridSize - 1)) * 100;
@@ -113,8 +123,11 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             const tileNumber = tile.originalPos + 1;
 
             return (
-              <motion.div
+              <motion.button
                 key={`tile-${tile.id}`}
+                type="button"
+                disabled={!canInteract}
+                aria-label={`Pieza ${tileNumber}${isCorrectPosition ? ', en posición correcta' : ''}`}
                 layout
                 initial={false}
                 animate={{
@@ -128,7 +141,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                   mass: 0.8,
                 }}
                 onClick={() => {
-                  if (status === 'playing') {
+                  if (canInteract) {
                     onTileClick(tile.currentPos);
                   }
                 }}
@@ -138,10 +151,10 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                   height: `${tileDimensionPercent}%`,
                   padding: '2.5px',
                 }}
-                className={`pointer-events-auto ${
-                  status === 'playing' && isMovable
-                    ? 'cursor-pointer hover:z-10'
-                    : 'cursor-default pointer-events-none'
+                className={`group bg-transparent border-0 appearance-none focus:outline-none ${
+                  canInteract
+                    ? 'pointer-events-auto cursor-pointer hover:z-10 focus-visible:z-20'
+                    : 'pointer-events-none cursor-default'
                 }`}
               >
                 <div
@@ -149,7 +162,11 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                     isCorrectPosition
                       ? 'border-2 border-green-main'
                       : 'border border-ink/40'
-                  } ${isMovable && status === 'playing' ? 'hover:scale-[1.01] active:scale-95' : ''}`}
+                  } ${
+                    canInteract
+                      ? 'hover:scale-[1.01] active:scale-95 group-focus-visible:ring-3 group-focus-visible:ring-blue-main group-focus-visible:ring-offset-1'
+                      : ''
+                  }`}
                   style={{
                     backgroundColor: isNumericOnly ? '#9A9E7C' : '#22201B',
                     backgroundImage: isNumericOnly ? undefined : `url(${currentImage.url})`,
@@ -172,7 +189,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </motion.button>
             );
           })}
         </div>

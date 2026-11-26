@@ -8,12 +8,13 @@ interface ActiveGameControlsProps {
   moves: number;
   score: number;
   isPaused: boolean;
+  isGameOver?: boolean;
   onTogglePause: () => void;
   showStats: boolean;
   onToggleStats: () => void;
   onShuffleRequest: () => void;
   onOpenReference: () => void;
-  children: React.ReactNode; // El PuzzleBoard
+  children: React.ReactNode;
 }
 
 export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
@@ -21,6 +22,7 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
   moves,
   score,
   isPaused,
+  isGameOver = false,
   onTogglePause,
   showStats,
   onToggleStats,
@@ -30,12 +32,16 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
 }) => {
   return (
     <div className="w-full max-w-310 mx-auto flex flex-col items-center gap-4 sm:gap-5">
-      {/* 1. Botones de acción superior: Pausar y Ocultar estadísticas */}
       <div className="w-full flex justify-between sm:justify-end gap-2.5">
         <button
           type="button"
           onClick={onTogglePause}
-          className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-main hover:bg-blue-main/90 text-white font-bold text-base border border-black rounded-xl shadow-card cursor-pointer transition active:translate-y-0.5"
+          disabled={isGameOver}
+          className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-main text-white font-bold text-base border border-black rounded-xl shadow-card transition ${
+            isGameOver
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:bg-blue-main/90 cursor-pointer active:translate-y-0.5'
+          }`}
         >
           <span>{isPaused ? 'Reanudar' : 'Pausar'}</span>
           <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-blue-main shrink-0">
@@ -57,7 +63,6 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
         </button>
       </div>
 
-      {/* 2. Fila horizontal de métricas (animada al mostrar/ocultar) */}
       <AnimatePresence>
         {showStats && (
           <motion.div
@@ -67,7 +72,6 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
             transition={{ duration: 0.25 }}
             className="w-full grid grid-cols-3 gap-2 sm:gap-3 overflow-hidden pb-1"
           >
-            {/* Tiempo */}
             <div className="bg-blanco border border-black rounded-card p-2 sm:p-3 shadow-card flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full border border-ink bg-cream flex items-center justify-center shrink-0">
                 <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink stroke-[2.2]" />
@@ -80,7 +84,6 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
               </div>
             </div>
 
-            {/* Movimientos */}
             <div className="bg-blanco border border-black rounded-card p-2 sm:p-3 shadow-card flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full border border-ink bg-cream flex items-center justify-center shrink-0">
                 <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink stroke-[2.2]" />
@@ -93,7 +96,6 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
               </div>
             </div>
 
-            {/* Puntuación */}
             <div className="bg-blanco border border-black rounded-card p-2 sm:p-3 shadow-card flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full border border-ink bg-cream flex items-center justify-center shrink-0">
                 <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink stroke-[2.2]" />
@@ -109,18 +111,14 @@ export const ActiveGameControls: React.FC<ActiveGameControlsProps> = ({
         )}
       </AnimatePresence>
 
-      {/* 3. Tablero central envuelto */}
       <div
         className={`w-full flex items-center justify-center transition-all duration-300 ease-in-out ${
-          showStats 
-            ? 'max-w-120 sm:max-w-125'  /* Tamaño estándar cuando las stats están visibles */
-            : 'max-w-135 sm:max-w-145'  /* Se agranda cuando se ocultan las stats */
+          showStats ? 'max-w-120 sm:max-w-125' : 'max-w-135 sm:max-w-145'
         }`}
       >
         {children}
       </div>
 
-      {/* 4. Botones inferiores: Barajar e Imagen de referencia */}
       <div className="flex items-center justify-center gap-2.5 flex-wrap">
         <button
           type="button"

@@ -18,9 +18,8 @@ import type { TileState, GameStatus, PuzzleImage } from './types';
 import { createInitialBoard, getSlidePath, isPuzzleSolved, shuffleBoard, getGridSize, getBlankId, calculateCompletionBonus, POINTS_PER_TILE } from './utils/puzzle';
 import daily1 from './assets/Daily1.jpg';
 
-
 const DEFAULT_IMAGE: PuzzleImage = {
-  name: 'Tigre', 
+  name: 'Tigre',
   url: daily1,
 };
 
@@ -33,7 +32,7 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [scoredTileIds, setScoredTileIds] = useState<number[]>([]);
 
-  // Estados visuales de partida activa
+  // Estados visuales de partida activa y modales
   const [showStats, setShowStats] = useState(true);
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
   const [isShuffleOpen, setIsShuffleOpen] = useState(false);
@@ -41,6 +40,13 @@ export default function App() {
   const [hasAcceptedGuest, setHasAcceptedGuest] = useState(false);
   const [hasStartedMoving, setHasStartedMoving] = useState(false);
   const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
+    try {
+      return localStorage.getItem('slidle_onboarding_completed') !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const timerRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -78,7 +84,7 @@ export default function App() {
     setHasStartedMoving(false);
     setMoves(0);
     setScore(0);
-    setScoredTileIds([]); 
+    setScoredTileIds([]);
     setIsVictoryModalOpen(false);
     setStatus('playing');
   };
@@ -96,64 +102,119 @@ export default function App() {
       const blankPos = blankTile.currentPos;
       const path = getSlidePath(clickedPos, blankPos, gridSize);
       if (!path || path.length === 0) return;
-      
+
       if (!hasStartedMoving) {
         setHasStartedMoving(true);
       }
 
-      setMoves((prev) => prev + 1);
+      const nextMoves = moves + 1;
+      setMoves(nextMoves);
 
-      setTiles((prev) => {
-        const nextTiles = prev.map((t) => ({ ...t }));
-        let currentEmpty = blankPos;
+      const nextTiles = tiles.map((t) => ({ ...t }));
+      let currentEmpty = blankPos;
 
-        for (const movePos of path) {
-          const tileIndex = nextTiles.findIndex((t) => t.currentPos === movePos);
-          const blankIndex = nextTiles.findIndex((t) => t.currentPos === currentEmpty);
+      for (const movePos of path) {
+        const tileIndex = nextTiles.findIndex((t) => t.currentPos === movePos);
+        const blankIndex = nextTiles.findIndex((t) => t.currentPos === currentEmpty);
 
-          if (tileIndex !== -1 && blankIndex !== -1) {
-            nextTiles[tileIndex].currentPos = currentEmpty;
-            nextTiles[blankIndex].currentPos = movePos;
-            currentEmpty = movePos;
+        if (tileIndex !== -1 && blankIndex !== -1) {
+          nextTiles[tileIndex].currentPos = currentEmpty;
+          nextTiles[blankIndex].currentPos = movePos;
+          currentEmpty = movePos;
+        }
+      }
+
+      setTiles(nextTiles);
+
+      const pointsPerTile = POINTS_PER_TILE[boardMode];
+      const newScoredIds: number[] = [];
+
+      nextTiles.forEach((tile) => {
+        if (!tile.isBlank && tile.currentPos === tile.originalPos) {
+          if (!scoredTileIds.includes(tile.id)) {
+            newScoredIds.push(tile.id);
           }
         }
-
-        const pointsPerTile = POINTS_PER_TILE[boardMode];
-        const newScoredIds: number[] = [];
-
-        nextTiles.forEach((tile) => {
-          if (!tile.isBlank && tile.currentPos === tile.originalPos) {
-            if (!scoredTileIds.includes(tile.id)) {
-              newScoredIds.push(tile.id);
-            }
-          }
-        });
-
-        if (newScoredIds.length > 0) {
-          setScoredTileIds((prevIds) => [...prevIds, ...newScoredIds]);
-          setScore((prevScore) => prevScore + newScoredIds.length * pointsPerTile);
-        }
-
-        if (isPuzzleSolved(nextTiles)) {
-          setStatus('won');
-          setIsVictoryModalOpen(true);
-          const finalBonus = calculateCompletionBonus(boardMode, timeSeconds, moves + 1);
-          setScore((prevScore) => prevScore + (newScoredIds.length * pointsPerTile) + finalBonus);
-        }
-
-        return nextTiles;
       });
+
+      const tilePointsEarned = newScoredIds.length * pointsPerTile;
+      if (newScoredIds.length > 0) {
+        setScoredTileIds((prevIds) => [...prevIds, ...newScoredIds]);
+      }
+
+      if (isPuzzleSolved(nextTiles)) {
+        setStatus('won');
+        setIsVictoryModalOpen(true);
+
+        const finalElapsedMs =
+          accumulatedTimeRef.current +
+          (startTimeRef.current !== null ? Date.now() - startTimeRef.current : 0);
+        const finalSeconds = Math.floor(finalElapsedMs / 1000);
+        setTimeSeconds(finalSeconds);
+
+        const finalBonus = calculateCompletionBonus(boardMode, finalSeconds, nextMoves);
+        setScore((prevScore) => prevScore + tilePointsEarned + finalBonus);
+      } else if (tilePointsEarned > 0) {
+        setScore((prevScore) => prevScore + tilePointsEarned);
+      }
     },
-    [tiles, status, boardMode, moves, scoredTileIds, timeSeconds, hasStartedMoving]
+    [tiles, status, boardMode, moves, scoredTileIds, hasStartedMoving]
   );
 
-    const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
-    try {
-      return localStorage.getItem('slidle_onboarding_completed') !== 'true';
-    } catch {
-      return true;
-    }
-  });
+  const handleDirectionMove = useCallback(
+    (direction: 'up' | 'down' | 'left' | 'right') => {
+      if (status !== 'playing') return;
+      if (isReferenceOpen || isShuffleOpen || isOnboardingOpen || isGuestModalOpen || isVictoryModalOpen) return;
+
+      const gridSize = getGridSize(boardMode);
+      const blankId = getBlankId(boardMode);
+      const blankTile = tiles.find((t) => t.isBlank || t.id === blankId);
+      if (!blankTile) return;
+
+      const blankRow = Math.floor(blankTile.currentPos / gridSize);
+      const blankCol = blankTile.currentPos % gridSize;
+
+      let targetRow = blankRow;
+      let targetCol = blankCol;
+
+      if (direction === 'up') targetRow = blankRow + 1;
+      if (direction === 'down') targetRow = blankRow - 1;
+      if (direction === 'left') targetCol = blankCol + 1;
+      if (direction === 'right') targetCol = blankCol - 1;
+
+      if (targetRow < 0 || targetRow >= gridSize || targetCol < 0 || targetCol >= gridSize) return;
+
+      const targetPos = targetRow * gridSize + targetCol;
+      handleTileClick(targetPos);
+    },
+    [
+      status,
+      boardMode,
+      tiles,
+      handleTileClick,
+      isReferenceOpen,
+      isShuffleOpen,
+      isOnboardingOpen,
+      isGuestModalOpen,
+      isVictoryModalOpen,
+    ]
+  );
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (status !== 'playing') return;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === 'ArrowUp') handleDirectionMove('up');
+        if (e.key === 'ArrowDown') handleDirectionMove('down');
+        if (e.key === 'ArrowLeft') handleDirectionMove('left');
+        if (e.key === 'ArrowRight') handleDirectionMove('right');
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [status, handleDirectionMove]);
 
   const handleCloseOnboarding = () => {
     setIsOnboardingOpen(false);
@@ -165,23 +226,22 @@ export default function App() {
   };
 
   const handleStartChallengeClick = () => {
-    // Si todavía no aceptó el aviso de invitado, abrimos el modal y frenamos el inicio
     if (!hasAcceptedGuest) {
       setIsGuestModalOpen(true);
       return;
     }
 
-    handleStartChallenge(); 
+    handleStartChallenge();
   };
 
   const handleConfirmGuest = () => {
     setHasAcceptedGuest(true);
     setIsGuestModalOpen(false);
-    handleStartChallenge(); 
+    handleStartChallenge();
   };
 
   const handlePlayAgain = () => {
-    handleStartChallenge(); 
+    handleStartChallenge();
   };
 
   const handleNextChallenge = () => {
@@ -201,7 +261,6 @@ export default function App() {
   };
 
   const handleSaveAsGuest = () => {
-    // Por ahora, hasta que el back tenga el endpoint listo
     console.log('Guardar partida como invitado:', {
       boardMode,
       timeSeconds,
@@ -252,7 +311,7 @@ export default function App() {
                   setBoardMode(mode);
                   setTiles(createInitialBoard(mode));
                   setTimeSeconds(0);
-                  accumulatedTimeRef.current = 0; 
+                  accumulatedTimeRef.current = 0;
                   startTimeRef.current = null;
                   setHasStartedMoving(false);
                   setMoves(0);
@@ -269,7 +328,7 @@ export default function App() {
                 >
                   <PuzzleBoard
                     tiles={tiles}
-                    mode={boardMode} 
+                    mode={boardMode}
                     currentImage={DEFAULT_IMAGE}
                     showNumbers={true}
                     status={status}
@@ -306,7 +365,14 @@ export default function App() {
                 moves={moves}
                 score={score}
                 isPaused={status === 'paused'}
-                onTogglePause={() => setStatus((s) => (s === 'playing' ? 'paused' : 'playing'))}
+                isGameOver={status === 'won'}
+                onTogglePause={() =>
+                  setStatus((s) => {
+                    if (s === 'playing') return 'paused';
+                    if (s === 'paused') return 'playing';
+                    return s;
+                  })
+                }
                 showStats={showStats}
                 onToggleStats={() => setShowStats((s) => !s)}
                 onShuffleRequest={() => setIsShuffleOpen(true)}
@@ -319,8 +385,9 @@ export default function App() {
                   showNumbers={true}
                   status={status}
                   onTileClick={handleTileClick}
+                  onKeyDownMove={handleDirectionMove}
                   onResume={() => setStatus('playing')}
-                  className="w-full" 
+                  className="w-full"
                 />
               </ActiveGameControls>
             </motion.div>
@@ -349,7 +416,7 @@ export default function App() {
 
         <GuestWarningModal
           isOpen={isGuestModalOpen}
-          onContinueAsGuest={handleConfirmGuest} 
+          onContinueAsGuest={handleConfirmGuest}
           onLoginWithGoogle={() => console.log('Login próximamente')}
           onClose={() => setIsGuestModalOpen(false)}
         />
